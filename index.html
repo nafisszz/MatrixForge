@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
     :root {
         --bg-deep: #0b0f1a;
@@ -16,11 +17,12 @@
         --line: #2a3550;
         --text-main: #e7ecf7;
         --text-dim: #8a96b8;
-        --accent: #5eead4;       /* teal/cyan signature */
+        --accent: #5eead4;
         --accent-soft: rgba(94, 234, 212, 0.12);
         --accent-strong: #2dd4bf;
         --warn: #fbbf24;
         --danger: #fb7185;
+        --success: #4ade80;
         --font-display: 'Space Grotesk', sans-serif;
         --font-ui: 'Inter', system-ui, sans-serif;
         --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
@@ -46,7 +48,7 @@
             radial-gradient(circle at 0% 100%, rgba(94,234,212,0.05), transparent 35%);
     }
 
-    /* ---------- NAVBAR ---------- */
+    /* NAVBAR */
     .navbar {
         flex: 0 0 auto;
         background-color: var(--bg-panel);
@@ -85,22 +87,18 @@
         letter-spacing: 0.5px;
     }
 
-    /* ---------- LAYOUT (THE FIX) ---------- */
-    /* Kunci perbaikan bug: workspace dipaksa mengisi sisa tinggi viewport,
-       dan TIDAK PERNAH ikut membesar walau grid matriks berukuran besar.
-       Sidebar dibuat flex-shrink:0 + posisi sticky/independen, dengan
-       scroll sendiri (overflow-y:auto) sehingga selalu terlihat. */
+    /* LAYOUT */
     .workspace {
         flex: 1 1 auto;
         display: flex;
-        min-height: 0;     /* <-- kunci utama: izinkan child untuk scroll, bukan overflow body */
+        min-height: 0;
         overflow: hidden;
     }
 
     .control-panel {
-        flex: 0 0 320px;
-        width: 320px;
-        max-width: 320px;
+        flex: 0 0 300px;
+        width: 300px;
+        max-width: 300px;
         background-color: var(--bg-panel);
         border-right: 1px solid var(--line);
         display: flex;
@@ -111,17 +109,17 @@
     }
 
     .panel-section {
-        padding: 20px;
+        padding: 16px 18px;
         border-bottom: 1px solid var(--line);
     }
 
     .section-title {
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         text-transform: uppercase;
         color: var(--accent);
         font-weight: 600;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         letter-spacing: 1.5px;
         display: flex;
         align-items: center;
@@ -129,26 +127,26 @@
     }
     .section-title::before {
         content: '';
-        width: 8px; height: 8px;
+        width: 7px; height: 7px;
         border-radius: 2px;
         background: var(--accent);
         box-shadow: 0 0 8px var(--accent);
     }
 
-    .form-group { margin-bottom: 12px; }
-    .form-row { display: flex; gap: 10px; }
+    .form-group { margin-bottom: 10px; }
+    .form-row { display: flex; gap: 8px; }
 
-    label { display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-dim); font-weight: 500; }
+    label { display: block; font-size: 0.78rem; margin-bottom: 5px; color: var(--text-dim); font-weight: 500; }
 
     select, input[type="number"] {
         width: 100%;
-        padding: 9px 12px;
+        padding: 8px 10px;
         background-color: var(--bg-input);
         border: 1px solid var(--line);
         color: var(--text-main);
         border-radius: 6px;
         font-family: var(--font-mono);
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         outline: none;
         transition: border-color 0.15s, box-shadow 0.15s;
     }
@@ -161,11 +159,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         width: 100%;
-        padding: 11px;
+        padding: 10px;
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         border-radius: 6px;
         border: none;
         cursor: pointer;
@@ -188,7 +186,25 @@
     }
     .btn-secondary:hover { background-color: #232f4d; border-color: var(--accent); }
 
-    /* ---------- MAIN CONTENT ---------- */
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        width: auto;
+    }
+
+    /* IMPORT BUTTONS ROW */
+    .import-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .import-row .btn {
+        flex: 1;
+        font-size: 0.72rem;
+        padding: 7px 4px;
+    }
+
+    /* MAIN CONTENT */
     .main-content {
         flex: 1 1 auto;
         display: flex;
@@ -200,7 +216,7 @@
 
     .editors-container {
         display: flex;
-        flex: 1 1 60%;
+        flex: 1 1 55%;
         min-height: 0;
         overflow: hidden;
         border-bottom: 1px solid var(--line);
@@ -218,11 +234,11 @@
 
     .pane-header {
         flex: 0 0 auto;
-        padding: 10px 18px;
+        padding: 9px 16px;
         background-color: var(--bg-elevated);
         border-bottom: 1px solid var(--line);
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.83rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -231,33 +247,29 @@
     }
     .pane-header .dim-badge {
         font-family: var(--font-mono);
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         color: var(--accent);
         background: var(--accent-soft);
         padding: 2px 8px;
         border-radius: 4px;
     }
 
-    /* Grid wrapper scrolls independently — never affects sidebar/layout */
     .grid-wrapper {
         flex: 1 1 auto;
         min-height: 0;
         overflow: auto;
-        padding: 14px;
+        padding: 12px;
     }
 
-    .matrix-table {
-        border-collapse: separate;
-        border-spacing: 3px;
-    }
+    .matrix-table { border-collapse: separate; border-spacing: 3px; }
 
     .matrix-table input {
-        width: 56px;
-        height: 28px;
+        width: 54px;
+        height: 27px;
         text-align: right;
         padding: 0 6px;
         font-family: var(--font-mono);
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         background-color: var(--bg-input);
         border: 1px solid var(--line);
         color: var(--text-main);
@@ -266,52 +278,219 @@
     .matrix-table input:hover { border-color: var(--accent); }
     .matrix-table input:focus { border-color: var(--accent); background-color: #16233d; outline: none; box-shadow: 0 0 0 2px var(--accent-soft); }
 
-    /* ---------- OUTPUT / CONSOLE ---------- */
+    /* OUTPUT PANE */
     .output-pane {
-        flex: 1 1 40%;
-        min-height: 160px;
+        flex: 1 1 45%;
+        min-height: 140px;
         background-color: var(--bg-panel);
         display: flex;
         flex-direction: column;
         min-height: 0;
     }
 
+    .output-header {
+        flex: 0 0 auto;
+        padding: 9px 16px;
+        background-color: var(--bg-elevated);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .output-header-title {
+        font-weight: 600;
+        font-size: 0.83rem;
+        font-family: var(--font-display);
+    }
+    .output-header-actions { display: flex; gap: 6px; align-items: center; }
+
     .output-content {
         flex: 1 1 auto;
         min-height: 0;
-        padding: 20px;
+        padding: 18px;
         overflow-y: auto;
         font-family: var(--font-mono);
-        font-size: 0.85rem;
+        font-size: 0.83rem;
         line-height: 1.6;
     }
 
-    .step-container { margin-bottom: 22px; padding: 16px; background: var(--bg-elevated); border-radius: 8px; border-left: 3px solid var(--accent); }
-    .step-title { color: var(--accent); font-weight: 600; margin-bottom: 10px; font-family: var(--font-display); letter-spacing: 0.3px; }
+    /* STEP DISPLAY */
+    .step-container {
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        background: var(--bg-elevated);
+        border-radius: 8px;
+        border-left: 3px solid var(--accent);
+    }
+    .step-title {
+        color: var(--accent);
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        letter-spacing: 0.3px;
+    }
 
-    .math-display { display: flex; align-items: center; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-    .math-operator { font-size: 1.5rem; font-weight: bold; color: var(--text-dim); font-family: var(--font-display); }
+    .math-display { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding-bottom: 8px; flex-wrap: wrap; }
+    .math-operator { font-size: 1.4rem; font-weight: bold; color: var(--text-dim); font-family: var(--font-display); }
 
-    .display-matrix { border-collapse: collapse; background: var(--bg-panel); border-radius: 4px; overflow: hidden; }
-    .display-matrix td { padding: 6px 12px; text-align: right; border: 1px solid var(--line); color: #fff; }
+    .display-matrix { border-collapse: collapse; background: var(--bg-panel); border-radius: 6px; overflow: hidden; }
+    .display-matrix td {
+        padding: 5px 10px;
+        text-align: right;
+        border: 1px solid var(--line);
+        color: #fff;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        min-width: 50px;
+    }
+    .display-matrix td.pivot { color: var(--accent); font-weight: 700; }
+    .display-matrix td.zero-cell { color: var(--text-dim); }
+    .display-matrix td.identity-one { color: var(--success); font-weight: 700; }
 
     .status-msg { color: var(--accent); font-weight: 600; }
     .error-msg { color: var(--danger); font-weight: 600; }
     .perf-msg { color: var(--warn); }
+    .success-msg { color: var(--success); font-weight: 600; }
 
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    .final-matrix-container {
+        margin-top: 6px;
+        padding: 12px;
+        background: rgba(94, 234, 212, 0.06);
+        border-radius: 8px;
+        border: 1px solid rgba(94, 234, 212, 0.25);
+    }
+
+    /* VIEW FULL OVERLAY */
+    .fullscreen-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: var(--bg-deep);
+        flex-direction: column;
+    }
+    .fullscreen-overlay.active { display: flex; }
+
+    .fullscreen-header {
+        flex: 0 0 auto;
+        padding: 14px 24px;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .fullscreen-header h2 {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 0;
+    }
+
+    .fullscreen-content {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 28px 36px;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    .fullscreen-content .step-container {
+        max-width: 900px;
+        margin-bottom: 22px;
+    }
+
+    /* CAMERA MODAL */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0,0,0,0.75);
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+        background: var(--bg-panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 24px;
+        width: 520px;
+        max-width: 95vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .modal-title {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-title button {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0;
+        line-height: 1;
+    }
+    .modal-title button:hover { color: var(--danger); }
+
+    #cameraPreview, #capturedCanvas {
+        width: 100%;
+        border-radius: 8px;
+        background: #000;
+        display: block;
+    }
+    #capturedCanvas { display: none; }
+
+    .camera-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .camera-controls .btn { flex: 1; min-width: 100px; }
+
+    .ocr-result {
+        background: var(--bg-elevated);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 12px;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        min-height: 60px;
+        color: var(--text-main);
+        white-space: pre-wrap;
+    }
+
+    .target-select { display: flex; gap: 8px; align-items: center; }
+    .target-select label { color: var(--text-dim); font-size: 0.78rem; margin: 0; white-space: nowrap; }
+    .target-select select { width: auto; flex: 1; }
+
+    /* SCROLLBARS */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-deep); }
     ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-    /* Responsive: stack on narrow screens, sidebar still always reachable */
     @media (max-width: 900px) {
         .workspace { flex-direction: column; overflow: auto; }
         .control-panel { flex: 0 0 auto; width: 100%; max-width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--line); }
         .editors-container { flex-direction: column; }
         .matrix-pane { border-right: none; border-bottom: 1px solid var(--line); }
     }
+
+    /* Hidden file input */
+    #xlsxInput, #xlsxInputA { display: none; }
 </style>
 </head>
 <body>
@@ -321,7 +500,7 @@
         <div class="mark">M∀</div>
         <div class="name">Matrix<span>Forge</span></div>
     </div>
-    <div class="tagline">// Web Worker Engine · Aman untuk Matriks Berordo Besar</div>
+    <div class="tagline">// Eliminasi Gauss-Jordan · Scan Foto · Import Excel</div>
 </nav>
 
 <div class="workspace">
@@ -336,7 +515,7 @@
                     <option value="mul">A × B (Perkalian)</option>
                     <option value="det">Determinan |A|</option>
                     <option value="inv">Invers (A⁻¹)</option>
-                    <option value="gauss">Eliminasi Gauss (A)</option>
+                    <option value="gauss">Eliminasi Gauss-Jordan (A)</option>
                 </select>
             </div>
             <div class="form-row">
@@ -346,7 +525,7 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>Kolom A</label>
-                    <input type="number" id="cA" value="3" min="1" max="100" onchange="buildGrid('A')">
+                    <input type="number" id="cA" value="4" min="1" max="100" onchange="buildGrid('A')">
                 </div>
             </div>
             <div class="form-row" id="dim-B">
@@ -366,19 +545,31 @@
             <div class="form-row">
                 <div class="form-group" style="flex: 1;">
                     <label>Nilai Min</label>
-                    <input type="number" id="randMin" value="-10">
+                    <input type="number" id="randMin" value="-9">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>Nilai Max</label>
-                    <input type="number" id="randMax" value="10">
+                    <input type="number" id="randMax" value="9">
                 </div>
             </div>
-            <button class="btn btn-secondary" onclick="generateRandom()" style="margin-bottom: 10px;">⚡ Isi Angka Acak</button>
+            <button class="btn btn-secondary" onclick="generateRandom()" style="margin-bottom: 8px;">⚡ Isi Angka Acak</button>
             <button class="btn btn-secondary" onclick="clearGrids()">🗑 Kosongkan Matriks</button>
         </div>
 
+        <div class="panel-section">
+            <div class="section-title">Import & Scan</div>
+            <div class="import-row">
+                <button class="btn btn-secondary" onclick="openCameraModal('A')" title="Scan foto matriks A">📷 Scan Foto</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('xlsxInputA').click()" title="Import dari Excel">📊 Excel</button>
+            </div>
+            <input type="file" id="xlsxInputA" accept=".xlsx,.xls,.csv" onchange="importExcel(event, 'A')">
+            <div style="margin-top: 6px; font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono);">
+                Scan: arahkan kamera ke matriks tertulis.<br>Excel: pilih file .xlsx/.csv berisi data matriks.
+            </div>
+        </div>
+
         <div class="panel-section" style="margin-top: auto; border-bottom: none;">
-            <button class="btn btn-primary" onclick="executeMath()" style="padding: 15px; font-size: 1rem;">▶ Eksekusi Operasi</button>
+            <button class="btn btn-primary" onclick="executeMath()" style="padding: 14px; font-size: 0.95rem;">▶ Eksekusi Operasi</button>
         </div>
     </aside>
 
@@ -387,7 +578,9 @@
             <div class="matrix-pane" id="pane-A">
                 <div class="pane-header">
                     <span>Matriks A</span>
-                    <span class="dim-badge" id="badge-A">3 × 3</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <span class="dim-badge" id="badge-A">3 × 4</span>
+                    </div>
                 </div>
                 <div class="grid-wrapper" id="grid-A"></div>
             </div>
@@ -401,281 +594,600 @@
         </div>
 
         <div class="output-pane">
-            <div class="pane-header" style="border-top: none;">
-                <span>Terminal Output (Langkah Pengerjaan)</span>
-                <button class="btn btn-secondary" style="padding: 4px 12px; width: auto; font-size: 0.78rem;" onclick="document.getElementById('console').innerHTML=''">Clear Terminal</button>
+            <div class="output-header">
+                <span class="output-header-title">Terminal Output — Langkah Pengerjaan</span>
+                <div class="output-header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openFullscreen()">⛶ View Full</button>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('console').innerHTML='<div style=\'color:var(--text-dim);\'>// Cleared.</div>'">✕ Clear</button>
+                </div>
             </div>
             <div class="output-content" id="console">
-                <div style="color: var(--text-dim);">// System Ready. Menggunakan Web Worker untuk komputasi aman...</div>
+                <div style="color: var(--text-dim);">// MatrixForge siap. Pilih operasi dan klik <strong style="color:var(--accent)">▶ Eksekusi</strong>.</div>
+                <div style="color: var(--text-dim); margin-top:6px;">// Eliminasi Gauss-Jordan: membentuk matriks identitas [I | solusi].</div>
             </div>
         </div>
     </main>
 </div>
 
+<!-- VIEW FULL OVERLAY -->
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+    <div class="fullscreen-header">
+        <h2>📋 Hasil Lengkap — Langkah Pengerjaan</h2>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="closeFullscreen()">✕ Tutup</button>
+        </div>
+    </div>
+    <div class="fullscreen-content" id="fullscreenContent"></div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="modal-overlay" id="cameraModal">
+    <div class="modal-box">
+        <div class="modal-title">
+            <span>📷 Scan Matriks dari Foto</span>
+            <button onclick="closeCameraModal()">✕</button>
+        </div>
+
+        <div class="target-select">
+            <label>Input ke:</label>
+            <select id="cameraTarget">
+                <option value="A">Matriks A</option>
+                <option value="B">Matriks B</option>
+            </select>
+        </div>
+
+        <video id="cameraPreview" autoplay playsinline></video>
+        <canvas id="capturedCanvas"></canvas>
+
+        <div class="camera-controls">
+            <button class="btn btn-secondary" id="btnStartCamera" onclick="startCamera()">🎥 Aktifkan Kamera</button>
+            <button class="btn btn-primary" id="btnCapture" onclick="capturePhoto()" style="display:none;">📸 Ambil Foto</button>
+            <button class="btn btn-secondary" id="btnRetake" onclick="retakePhoto()" style="display:none;">🔄 Ulangi</button>
+            <label class="btn btn-secondary" style="cursor:pointer;">
+                📂 Upload Foto
+                <input type="file" accept="image/*" onchange="loadPhotoFile(event)" style="display:none;">
+            </label>
+        </div>
+
+        <div>
+            <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:6px; font-family:var(--font-mono);">Hasil Deteksi (edit jika perlu, format: angka dipisah spasi, baris baru = baris baru):</div>
+            <textarea class="ocr-result" id="ocrResult" rows="5" placeholder="Contoh:&#10;1 2 3&#10;4 5 6&#10;7 8 9"></textarea>
+        </div>
+
+        <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);">
+            💡 Tips: Pastikan foto matriks terlihat jelas. Setelah deteksi, periksa dan koreksi hasilnya sebelum mengisi.
+        </div>
+
+        <button class="btn btn-primary" onclick="applyOCRResult()">✅ Isi Matriks dari Hasil Scan</button>
+    </div>
+</div>
+
 <script>
-    // --- MANAJEMEN UI & GRID OPTIMIZATION ---
-    function handleOperationChange() {
-        const op = document.getElementById('operation').value;
-        const needsB = ['add', 'sub', 'mul'].includes(op);
-        document.getElementById('pane-B').style.display = needsB ? 'flex' : 'none';
-        document.getElementById('dim-B').style.display = needsB ? 'flex' : 'none';
-    }
+// ========== GLOBAL STATE ==========
+let cameraStream = null;
+let currentOCRTarget = 'A';
+let lastOutputHTML = '';
 
-    function updateBadge(id) {
-        const r = document.getElementById(`r${id}`).value;
-        const c = document.getElementById(`c${id}`).value;
-        document.getElementById(`badge-${id}`).textContent = `${r} × ${c}`;
+// ========== UI HELPERS ==========
+function handleOperationChange() {
+    const op = document.getElementById('operation').value;
+    const needsB = ['add', 'sub', 'mul'].includes(op);
+    document.getElementById('pane-B').style.display = needsB ? 'flex' : 'none';
+    document.getElementById('dim-B').style.display = needsB ? 'flex' : 'none';
+    if (op === 'gauss') {
+        // Gauss-Jordan biasanya butuh augmented: n x (n+1)
+        const rA = parseInt(document.getElementById('rA').value);
+        document.getElementById('cA').value = rA + 1;
+        buildGrid('A');
     }
+}
 
-    // Menggunakan string HTML batching agar merender 100x100 (10.000 input) sangat cepat
-    function buildGrid(id) {
+function updateBadge(id) {
+    const r = document.getElementById(`r${id}`).value;
+    const c = document.getElementById(`c${id}`).value;
+    document.getElementById(`badge-${id}`).textContent = `${r} × ${c}`;
+}
+
+function buildGrid(id) {
+    const r = parseInt(document.getElementById(`r${id}`).value);
+    const c = parseInt(document.getElementById(`c${id}`).value);
+    const container = document.getElementById(`grid-${id}`);
+
+    let html = '<table class="matrix-table">';
+    for (let i = 0; i < r; i++) {
+        html += '<tr>';
+        for (let j = 0; j < c; j++) {
+            html += `<td><input type="number" id="m${id}_${i}_${j}" value="0" step="any"></td>`;
+        }
+        html += '</tr>';
+    }
+    html += '</table>';
+    container.innerHTML = html;
+    updateBadge(id);
+}
+
+function generateRandom() {
+    const min = parseInt(document.getElementById('randMin').value);
+    const max = parseInt(document.getElementById('randMax').value);
+    const op = document.getElementById('operation').value;
+    ['A', ...((['add','sub','mul'].includes(op)) ? ['B'] : [])].forEach(id => {
         const r = parseInt(document.getElementById(`r${id}`).value);
         const c = parseInt(document.getElementById(`c${id}`).value);
-        const container = document.getElementById(`grid-${id}`);
-
         let html = '<table class="matrix-table">';
         for (let i = 0; i < r; i++) {
             html += '<tr>';
             for (let j = 0; j < c; j++) {
-                html += `<td><input type="number" id="m${id}_${i}_${j}" value="0"></td>`;
+                let val = Math.floor(Math.random() * (max - min + 1)) + min;
+                html += `<td><input type="number" id="m${id}_${i}_${j}" value="${val}" step="any"></td>`;
             }
             html += '</tr>';
         }
         html += '</table>';
-        container.innerHTML = html;
+        document.getElementById(`grid-${id}`).innerHTML = html;
         updateBadge(id);
-    }
+    });
+}
 
-    function generateRandom() {
-        const min = parseInt(document.getElementById('randMin').value);
-        const max = parseInt(document.getElementById('randMax').value);
-        const rA = parseInt(document.getElementById('rA').value);
-        const cA = parseInt(document.getElementById('cA').value);
+function clearGrids() { buildGrid('A'); buildGrid('B'); }
 
-        let htmlA = '<table class="matrix-table">';
-        for (let i = 0; i < rA; i++) {
-            htmlA += '<tr>';
-            for (let j = 0; j < cA; j++) {
-                let val = Math.floor(Math.random() * (max - min + 1)) + min;
-                htmlA += `<td><input type="number" id="mA_${i}_${j}" value="${val}"></td>`;
-            }
-            htmlA += '</tr>';
-        }
-        htmlA += '</table>';
-        document.getElementById('grid-A').innerHTML = htmlA;
-        updateBadge('A');
-
-        const op = document.getElementById('operation').value;
-        if (['add', 'sub', 'mul'].includes(op)) {
-            const rB = parseInt(document.getElementById('rB').value);
-            const cB = parseInt(document.getElementById('cB').value);
-            let htmlB = '<table class="matrix-table">';
-            for (let i = 0; i < rB; i++) {
-                htmlB += '<tr>';
-                for (let j = 0; j < cB; j++) {
-                    let val = Math.floor(Math.random() * (max - min + 1)) + min;
-                    htmlB += `<td><input type="number" id="mB_${i}_${j}" value="${val}"></td>`;
-                }
-                htmlB += '</tr>';
-            }
-            htmlB += '</table>';
-            document.getElementById('grid-B').innerHTML = htmlB;
-            updateBadge('B');
+function getMatrixData(id, r, c) {
+    const data = [];
+    for (let i = 0; i < r; i++) {
+        data.push([]);
+        for (let j = 0; j < c; j++) {
+            let el = document.getElementById(`m${id}_${i}_${j}`);
+            let val = el ? parseFloat(el.value) : 0;
+            data[i].push(isNaN(val) ? 0 : val);
         }
     }
+    return data;
+}
 
-    function clearGrids() {
-        buildGrid('A'); buildGrid('B');
-    }
-
-    function getMatrixData(id, r, c) {
-        const data = new Float64Array(r * c);
-        for (let i = 0; i < r; i++) {
-            for (let j = 0; j < c; j++) {
-                let val = parseFloat(document.getElementById(`m${id}_${i}_${j}`).value);
-                data[i * c + j] = isNaN(val) ? 0 : val;
-            }
+function setMatrixData(id, data) {
+    const r = data.length;
+    const c = data[0].length;
+    document.getElementById(`r${id}`).value = r;
+    document.getElementById(`c${id}`).value = c;
+    buildGrid(id);
+    for (let i = 0; i < r; i++) {
+        for (let j = 0; j < c; j++) {
+            const el = document.getElementById(`m${id}_${i}_${j}`);
+            if (el) el.value = data[i][j];
         }
-        return data;
     }
+    updateBadge(id);
+}
 
-    // --- LOGIKA WEB WORKER (Mencegah Lag saat Komputasi) ---
-    const workerCode = `
-        function fmt(mat, r, c) {
-            let h = "<table class='display-matrix'>";
-            for(let i=0; i<r; i++) {
-                h += "<tr>";
-                for(let j=0; j<c; j++) h += "<td>" + Number(mat[i*c+j].toFixed(4)) + "</td>";
-                h += "</tr>";
-            }
-            return h + "</table>";
-        }
+// ========== FULLSCREEN VIEW ==========
+function openFullscreen() {
+    document.getElementById('fullscreenContent').innerHTML = lastOutputHTML ||
+        '<div style="color:var(--text-dim)">Belum ada hasil. Eksekusi operasi terlebih dahulu.</div>';
+    document.getElementById('fullscreenOverlay').classList.add('active');
+}
 
-        self.onmessage = function(e) {
-            const { op, mA, rA, cA, mB, rB, cB } = e.data;
-            let out = "";
-            const isLarge = Math.max(rA, cA, rB || 0, cB || 0) > 100;
+function closeFullscreen() {
+    document.getElementById('fullscreenOverlay').classList.remove('active');
+}
 
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeFullscreen();
+});
+
+// ========== CAMERA / SCAN ==========
+function openCameraModal(target) {
+    currentOCRTarget = target;
+    document.getElementById('cameraTarget').value = target;
+    document.getElementById('cameraModal').classList.add('active');
+    document.getElementById('cameraPreview').style.display = 'block';
+    document.getElementById('capturedCanvas').style.display = 'none';
+    document.getElementById('btnCapture').style.display = 'none';
+    document.getElementById('btnRetake').style.display = 'none';
+    document.getElementById('ocrResult').value = '';
+}
+
+function closeCameraModal() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    document.getElementById('cameraModal').classList.remove('active');
+    document.getElementById('btnStartCamera').style.display = 'inline-flex';
+    document.getElementById('btnCapture').style.display = 'none';
+    document.getElementById('btnRetake').style.display = 'none';
+}
+
+async function startCamera() {
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = document.getElementById('cameraPreview');
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        document.getElementById('capturedCanvas').style.display = 'none';
+        document.getElementById('btnStartCamera').style.display = 'none';
+        document.getElementById('btnCapture').style.display = 'inline-flex';
+    } catch(err) {
+        alert('Kamera tidak dapat diakses: ' + err.message + '\n\nGunakan fitur "Upload Foto" sebagai alternatif.');
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraPreview');
+    const canvas = document.getElementById('capturedCanvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    document.getElementById('btnCapture').style.display = 'none';
+    document.getElementById('btnRetake').style.display = 'inline-flex';
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+    processImageForMatrix(canvas);
+}
+
+function retakePhoto() {
+    document.getElementById('capturedCanvas').style.display = 'none';
+    document.getElementById('btnRetake').style.display = 'none';
+    document.getElementById('btnStartCamera').style.display = 'inline-flex';
+    document.getElementById('ocrResult').value = '';
+}
+
+function loadPhotoFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.getElementById('capturedCanvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        document.getElementById('cameraPreview').style.display = 'none';
+        canvas.style.display = 'block';
+        document.getElementById('btnRetake').style.display = 'inline-flex';
+        processImageForMatrix(canvas);
+    };
+    img.src = URL.createObjectURL(file);
+}
+
+function processImageForMatrix(canvas) {
+    // Simple pixel-based number extraction using Claude API
+    document.getElementById('ocrResult').value = 'Menganalisis gambar...';
+    canvas.toBlob(async (blob) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const base64 = reader.result.split(',')[1];
             try {
-                if (isLarge) {
-                    out += "<div class='step-container'><div class='step-title'>⚠ Mode Kinerja Tinggi Aktif</div><span class='perf-msg'>Karena matriks berukuran lebih dari 10x10, langkah pengerjaan detail disembunyikan untuk mencegah browser kehabisan memori. Hanya hasil akhir yang ditampilkan.</span></div>";
-                }
-
-                if (op === 'add' || op === 'sub') {
-                    if (rA !== rB || cA !== cB) throw "Dimensi A dan B harus sama.";
-                    let res = new Float64Array(mA.length);
-                    for (let i = 0; i < mA.length; i++) res[i] = op === 'add' ? mA[i] + mB[i] : mA[i] - mB[i];
-
-                    if (!isLarge) {
-                        out += "<div class='step-container'><div class='step-title'>Langkah Penjumlahan/Pengurangan Elemen per Elemen:</div>";
-                        out += "<div class='math-display'>" + fmt(mA, rA, cA) + "<div class='math-operator'>" + (op==='add'?'+':'−') + "</div>" + fmt(mB, rB, cB) + "<div class='math-operator'>=</div>" + fmt(res, rA, cA) + "</div></div>";
-                    } else {
-                        out += "<div class='step-container'><div class='step-title'>Hasil Akhir:</div>" + fmt(res, rA, cA) + "</div>";
-                    }
-                }
-                else if (op === 'mul') {
-                    if (cA !== rB) throw "Kolom A harus sama dengan Baris B.";
-                    let res = new Float64Array(rA * cB);
-                    for (let i = 0; i < rA; i++) {
-                        for (let j = 0; j < cB; j++) {
-                            let sum = 0;
-                            for (let k = 0; k < cA; k++) sum += mA[i * cA + k] * mB[k * cB + j];
-                            res[i * cB + j] = sum;
-                        }
-                    }
-                    if (!isLarge) {
-                        out += "<div class='step-container'><div class='step-title'>Langkah Perkalian (Baris × Kolom):</div>";
-                        out += "<div class='math-display'>" + fmt(mA, rA, cA) + "<div class='math-operator'>×</div>" + fmt(mB, rB, cB) + "<div class='math-operator'>=</div>" + fmt(res, rA, cB) + "</div></div>";
-                    } else {
-                        out += "<div class='step-container'><div class='step-title'>Hasil Akhir Perkalian:</div>" + fmt(res, rA, cB) + "</div>";
-                    }
-                }
-                else if (op === 'det') {
-                    if (rA !== cA) throw "Matriks harus persegi.";
-                    let mat = new Float64Array(mA);
-                    let det = 1;
-                    let n = rA;
-
-                    if(!isLarge) out += "<div class='step-container'><div class='step-title'>Matriks Awal:</div>" + fmt(mat, n, n) + "</div>";
-
-                    for (let i = 0; i < n; i++) {
-                        let pivot = i;
-                        for (let j = i + 1; j < n; j++) if (Math.abs(mat[j * n + i]) > Math.abs(mat[pivot * n + i])) pivot = j;
-
-                        if (pivot !== i) {
-                            for (let k = 0; k < n; k++) {
-                                let temp = mat[i * n + k]; mat[i * n + k] = mat[pivot * n + k]; mat[pivot * n + k] = temp;
-                            }
-                            det *= -1;
-                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Tukar Baris " + (i+1) + " & " + (pivot+1) + " (Det × -1):</div>" + fmt(mat, n, n) + "</div>";
-                        }
-
-                        if (Math.abs(mat[i * n + i]) < 1e-9) { det = 0; break; }
-
-                        det *= mat[i * n + i];
-                        for (let k = i + 1; k < n; k++) {
-                            let factor = mat[k * n + i] / mat[i * n + i];
-                            for (let j = i; j < n; j++) mat[k * n + j] -= factor * mat[i * n + j];
-                        }
-                    }
-                    out += "<div class='step-container'><div class='step-title'>Determinan Akhir:</div><h2 style='margin:0; color:#5eead4'>" + Number(det.toFixed(4)) + "</h2></div>";
-                }
-                else if (op === 'gauss' || op === 'inv') {
-                    let isInv = op === 'inv';
-                    if (isInv && rA !== cA) throw "Matriks harus persegi untuk mencari Invers.";
-
-                    let n = rA;
-                    let m = isInv ? n * 2 : cA;
-                    let mat = new Float64Array(n * m);
-
-                    for(let i=0; i<n; i++) {
-                        for(let j=0; j<cA; j++) mat[i*m + j] = mA[i*cA + j];
-                        if(isInv) mat[i*m + (i + cA)] = 1;
-                    }
-
-                    if(!isLarge) out += "<div class='step-container'><div class='step-title'>" + (isInv ? "Matriks Augmented [A | I]:" : "Matriks Awal:") + "</div>" + fmt(mat, n, m) + "</div>";
-
-                    for (let i = 0; i < Math.min(n, cA); i++) {
-                        let pivot = i;
-                        for (let j = i + 1; j < n; j++) if (Math.abs(mat[j * m + i]) > Math.abs(mat[pivot * m + i])) pivot = j;
-
-                        if (pivot !== i) {
-                            for (let k = 0; k < m; k++) {
-                                let t = mat[i * m + k]; mat[i * m + k] = mat[pivot * m + k]; mat[pivot * m + k] = t;
-                            }
-                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Tukar Baris " + (i+1) + " & " + (pivot+1) + "</div>" + fmt(mat, n, m) + "</div>";
-                        }
-
-                        if (Math.abs(mat[i * m + i]) < 1e-9) {
-                            if(isInv) throw "Matriks Singular (Determinan 0), Invers tidak ada.";
-                            continue;
-                        }
-
-                        if(isInv) {
-                            let pVal = mat[i * m + i];
-                            for (let j = 0; j < m; j++) mat[i * m + j] /= pVal;
-                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Bagi Baris " + (i+1) + " dengan " + pVal.toFixed(2) + "</div>" + fmt(mat, n, m) + "</div>";
-                        }
-
-                        for (let k = i + 1; k < n; k++) {
-                            let factor = mat[k * m + i] / (isInv ? 1 : mat[i * m + i]);
-                            if (Math.abs(factor) > 1e-9) {
-                                for (let j = i; j < m; j++) mat[k * m + j] -= factor * mat[i * m + j];
-                                if(!isLarge) out += "<div class='step-container'><div class='step-title'>Baris " + (k+1) + " - (" + factor.toFixed(2) + " * Baris " + (i+1) + ")</div>" + fmt(mat, n, m) + "</div>";
-                            }
-                        }
-                    }
-
-                    if (isInv) {
-                        for (let i = n - 1; i >= 0; i--) {
-                            for (let k = i - 1; k >= 0; k--) {
-                                let factor = mat[k * m + i];
-                                for (let j = i; j < m; j++) mat[k * m + j] -= factor * mat[i * m + j];
-                            }
-                        }
-
-                        let res = new Float64Array(n * n);
-                        for(let i=0; i<n; i++) for(let j=0; j<n; j++) res[i*n+j] = mat[i*m + (j+n)];
-                        out += "<div class='step-container'><div class='step-title'>Hasil Invers Akhir:</div>" + fmt(res, n, n) + "</div>";
-                    } else {
-                        if(isLarge) out += "<div class='step-container'><div class='step-title'>Hasil Eliminasi Gauss:</div>" + fmt(mat, n, m) + "</div>";
-                    }
-                }
-                self.postMessage({ status: 'ok', html: out });
-            } catch (err) {
-                self.postMessage({ status: 'error', html: "<div class='error-msg'>[ERROR] " + err + "</div>" });
+                const resp = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-6',
+                        max_tokens: 500,
+                        messages: [{
+                            role: 'user',
+                            content: [
+                                { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+                                { type: 'text', text: 'Ekstrak semua angka dari matriks di gambar ini. Kembalikan HANYA angka-angka dalam format: setiap baris matriks dipisah newline, angka dalam satu baris dipisah spasi. Tidak ada teks lain. Contoh output:\n1 2 3\n4 5 6\n7 8 9\n\nJika ada garis augmented (pemisah | dalam matriks), tetap tuliskan semua angkanya berurutan tanpa simbol |.' }
+                            ]
+                        }]
+                    })
+                });
+                const data = await resp.json();
+                const text = data.content?.[0]?.text || '';
+                document.getElementById('ocrResult').value = text.trim();
+            } catch(err) {
+                document.getElementById('ocrResult').value = '// Gagal mendeteksi otomatis.\n// Edit manual di bawah, contoh:\n1 2 3\n4 5 6\n7 8 9';
             }
         };
-    `;
-    const blob = new Blob([workerCode], { type: 'application/javascript' });
-    const worker = new Worker(URL.createObjectURL(blob));
+        reader.readAsDataURL(blob);
+    }, 'image/jpeg', 0.85);
+}
 
-    worker.onmessage = function(e) {
-        document.getElementById('console').innerHTML = e.data.html;
+function applyOCRResult() {
+    const target = document.getElementById('cameraTarget').value;
+    const raw = document.getElementById('ocrResult').value.trim();
+    if (!raw) { alert('Hasil scan kosong. Edit manual terlebih dahulu.'); return; }
+
+    const rows = raw.split('\n').map(r => r.trim()).filter(r => r.length > 0);
+    const data = rows.map(row => row.split(/[\s,;]+/).map(v => parseFloat(v.replace(',', '.')) || 0));
+
+    if (data.length === 0 || data[0].length === 0) { alert('Format tidak valid. Pastikan angka dipisah spasi.'); return; }
+
+    setMatrixData(target, data);
+    closeCameraModal();
+}
+
+// ========== EXCEL IMPORT ==========
+function importExcel(event, targetId) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const wb = XLSX.read(e.target.result, { type: 'binary' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: 0 });
+            const data = raw.filter(r => r.some(v => v !== '' && v !== null))
+                           .map(r => r.map(v => parseFloat(v) || 0));
+            if (data.length > 0) {
+                setMatrixData(targetId, data);
+                alert(`✅ Berhasil mengimpor matriks ${data.length} × ${data[0].length} dari Excel ke Matriks ${targetId}.`);
+            } else {
+                alert('File Excel tidak mengandung data yang valid.');
+            }
+        } catch(err) {
+            alert('Gagal membaca file: ' + err.message);
+        }
     };
+    reader.readAsBinaryString(file);
+    event.target.value = '';
+}
 
-    function executeMath() {
-        const op = document.getElementById('operation').value;
-        const consoleEl = document.getElementById('console');
+// ========== MATH ENGINE ==========
+function fmtNum(v) {
+    if (Math.abs(v) < 1e-9) return '0';
+    const rounded = Math.round(v * 1e8) / 1e8;
+    // Show fractions nicely when possible
+    if (Number.isInteger(rounded)) return String(rounded);
+    return Number(rounded.toFixed(4)).toString();
+}
 
-        const rA = parseInt(document.getElementById('rA').value);
-        const cA = parseInt(document.getElementById('cA').value);
-        const rB = parseInt(document.getElementById('rB').value);
-        const cB = parseInt(document.getElementById('cB').value);
+function buildMatrixHTML(mat, highlight) {
+    // highlight: {col, type} or {row, type} or null
+    let h = "<table class='display-matrix'>";
+    for (let i = 0; i < mat.length; i++) {
+        h += "<tr>";
+        for (let j = 0; j < mat[i].length; j++) {
+            const v = mat[i][j];
+            let cls = '';
+            if (Math.abs(v) < 1e-9) cls = 'zero-cell';
+            if (highlight && highlight.pivotRow === i && highlight.pivotCol === j) cls = 'pivot';
+            if (highlight && highlight.identity && i === j && Math.abs(v - 1) < 1e-9) cls = 'identity-one';
+            h += `<td class="${cls}">${fmtNum(v)}</td>`;
+        }
+        h += "</tr>";
+    }
+    return h + "</table>";
+}
 
-        consoleEl.innerHTML = "<div class='status-msg'>Memproses kalkulasi...</div>";
+function deepCopy(mat) { return mat.map(r => [...r]); }
 
-        setTimeout(() => {
-            const mA = getMatrixData('A', rA, cA);
-            const mB = ['add', 'sub', 'mul'].includes(op) ? getMatrixData('B', rB, cB) : new Float64Array(0);
-            worker.postMessage({ op, mA, rA, cA, mB, rB, cB });
-        }, 50);
+function gaussJordanFull(matInput, n, m) {
+    // Eliminasi Gauss-Jordan penuh
+    // Tujuan: diagonal utama = 1, lainnya = 0
+    let steps = [];
+    let mat = deepCopy(matInput);
+
+    steps.push({
+        title: '📌 Matriks Augmented Awal [A | b]',
+        mat: deepCopy(mat),
+        desc: `Matriks berukuran ${n} × ${m}. Kolom terakhir adalah vektor konstanta b.`
+    });
+
+    let pivotRow = 0;
+
+    for (let col = 0; col < Math.min(n, m - 1); col++) {
+        // Cari baris pivot (partial pivoting)
+        let maxVal = Math.abs(mat[pivotRow][col]);
+        let maxRow = pivotRow;
+        for (let r = pivotRow + 1; r < n; r++) {
+            if (Math.abs(mat[r][col]) > maxVal) {
+                maxVal = Math.abs(mat[r][col]);
+                maxRow = r;
+            }
+        }
+
+        if (maxVal < 1e-9) {
+            steps.push({
+                title: `⚠ Kolom ${col + 1}: Elemen pivot = 0`,
+                mat: deepCopy(mat),
+                desc: `Kolom ${col + 1} sudah nol di bawah baris ${pivotRow + 1}. Lewati ke kolom berikutnya.`
+            });
+            continue;
+        }
+
+        // Tukar baris jika perlu
+        if (maxRow !== pivotRow) {
+            [mat[pivotRow], mat[maxRow]] = [mat[maxRow], mat[pivotRow]];
+            steps.push({
+                title: `🔄 Langkah: Tukar Baris ${pivotRow + 1} ↔ Baris ${maxRow + 1}`,
+                mat: deepCopy(mat),
+                desc: `Tukar baris untuk menempatkan elemen terbesar sebagai pivot.`,
+                pivotRow: pivotRow, pivotCol: col
+            });
+        }
+
+        // Normalisasi baris pivot → pivot = 1
+        const pivotVal = mat[pivotRow][col];
+        if (Math.abs(pivotVal - 1) > 1e-9) {
+            const pivotValStr = fmtNum(pivotVal);
+            for (let j = 0; j < m; j++) mat[pivotRow][j] /= pivotVal;
+            steps.push({
+                title: `➗ Langkah: B${pivotRow + 1} ÷ (${pivotValStr}) → Pivot = 1`,
+                mat: deepCopy(mat),
+                desc: `Bagi seluruh Baris ${pivotRow + 1} dengan ${pivotValStr} agar elemen pivot menjadi 1.`,
+                pivotRow: pivotRow, pivotCol: col
+            });
+        }
+
+        // Eliminasi ke atas dan ke bawah → semua elemen di kolom pivot = 0
+        let anyElim = false;
+        for (let r = 0; r < n; r++) {
+            if (r === pivotRow) continue;
+            const factor = mat[r][col];
+            if (Math.abs(factor) < 1e-9) continue;
+            anyElim = true;
+            const factorStr = fmtNum(factor);
+            for (let j = 0; j < m; j++) mat[r][j] -= factor * mat[pivotRow][j];
+        }
+        if (anyElim) {
+            steps.push({
+                title: `✂ Langkah: Eliminasi kolom ${col + 1} (buat semua elemen = 0)`,
+                mat: deepCopy(mat),
+                desc: `Kurangkan kelipatan Baris ${pivotRow + 1} dari semua baris lain agar kolom ${col + 1} bernilai 0 kecuali pivot.`,
+                pivotRow: pivotRow, pivotCol: col, identity: true
+            });
+        }
+
+        pivotRow++;
     }
 
-    // Inisialisasi
-    handleOperationChange();
-    buildGrid('A');
-    buildGrid('B');
+    return { steps, result: mat };
+}
+
+function executeMath() {
+    const op = document.getElementById('operation').value;
+    const consoleEl = document.getElementById('console');
+    consoleEl.innerHTML = "<div class='status-msg'>⚙ Memproses kalkulasi...</div>";
+
+    setTimeout(() => {
+        try {
+            const rA = parseInt(document.getElementById('rA').value);
+            const cA = parseInt(document.getElementById('cA').value);
+            const rB = parseInt(document.getElementById('rB').value);
+            const cB = parseInt(document.getElementById('cB').value);
+            const mA = getMatrixData('A', rA, cA);
+            const mB = getMatrixData('B', rB, cB);
+            const isLarge = Math.max(rA, cA) > 10;
+
+            let out = '';
+
+            if (op === 'add' || op === 'sub') {
+                if (rA !== rB || cA !== cB) throw 'Dimensi A dan B harus sama untuk penjumlahan/pengurangan.';
+                const res = mA.map((row, i) => row.map((v, j) => op === 'add' ? v + mB[i][j] : v - mB[i][j]));
+                if (!isLarge) {
+                    out += `<div class='step-container'><div class='step-title'>${op === 'add' ? 'A + B' : 'A − B'} — Elemen per Elemen</div>`;
+                    out += `<div class='math-display'>${buildMatrixHTML(mA, null)}<div class='math-operator'>${op === 'add' ? '+' : '−'}</div>${buildMatrixHTML(mB, null)}<div class='math-operator'>=</div>${buildMatrixHTML(res, null)}</div></div>`;
+                }
+                out += `<div class='step-container'><div class='step-title'>✅ Hasil Akhir</div><div class='final-matrix-container'>${buildMatrixHTML(res, {identity: true})}</div></div>`;
+            }
+            else if (op === 'mul') {
+                if (cA !== rB) throw `Kolom A (${cA}) harus sama dengan Baris B (${rB}).`;
+                const res = Array.from({length: rA}, (_, i) =>
+                    Array.from({length: cB}, (_, j) =>
+                        mA[i].reduce((s, v, k) => s + v * mB[k][j], 0)));
+                if (!isLarge) {
+                    out += `<div class='step-container'><div class='step-title'>A × B — Perkalian Matriks</div><div class='math-display'>${buildMatrixHTML(mA, null)}<div class='math-operator'>×</div>${buildMatrixHTML(mB, null)}<div class='math-operator'>=</div>${buildMatrixHTML(res, null)}</div></div>`;
+                }
+                out += `<div class='step-container'><div class='step-title'>✅ Hasil Akhir</div><div class='final-matrix-container'>${buildMatrixHTML(res, {identity: true})}</div></div>`;
+            }
+            else if (op === 'det') {
+                if (rA !== cA) throw 'Matriks harus persegi untuk menghitung determinan.';
+                let mat = deepCopy(mA);
+                let det = 1;
+                const n = rA;
+
+                if (!isLarge) out += `<div class='step-container'><div class='step-title'>Matriks Awal A:</div>${buildMatrixHTML(mat, null)}</div>`;
+
+                for (let i = 0; i < n; i++) {
+                    let pivot = i;
+                    for (let j = i + 1; j < n; j++) if (Math.abs(mat[j][i]) > Math.abs(mat[pivot][i])) pivot = j;
+                    if (pivot !== i) {
+                        [mat[i], mat[pivot]] = [mat[pivot], mat[i]];
+                        det *= -1;
+                        if (!isLarge) out += `<div class='step-container'><div class='step-title'>🔄 Tukar B${i+1} ↔ B${pivot+1} → Det ×= -1</div>${buildMatrixHTML(mat, {pivotRow:i, pivotCol:i})}</div>`;
+                    }
+                    if (Math.abs(mat[i][i]) < 1e-9) { det = 0; break; }
+                    det *= mat[i][i];
+                    for (let k = i + 1; k < n; k++) {
+                        const f = mat[k][i] / mat[i][i];
+                        for (let j = i; j < n; j++) mat[k][j] -= f * mat[i][j];
+                    }
+                    if (!isLarge) out += `<div class='step-container'><div class='step-title'>Setelah eliminasi kolom ${i+1}:</div>${buildMatrixHTML(mat, {pivotRow:i, pivotCol:i})}</div>`;
+                }
+                const detRounded = Math.round(det * 1e8) / 1e8;
+                out += `<div class='step-container'><div class='step-title'>✅ Determinan Akhir</div><h2 style='margin:4px 0; color:var(--accent); font-family:var(--font-mono);'>det(A) = ${fmtNum(detRounded)}</h2></div>`;
+            }
+            else if (op === 'inv') {
+                if (rA !== cA) throw 'Matriks harus persegi untuk mencari invers.';
+                const n = rA;
+                // Augment dengan identitas
+                let mat = mA.map((row, i) => [...row, ...Array.from({length: n}, (_, j) => i === j ? 1 : 0)]);
+
+                if (!isLarge) out += `<div class='step-container'><div class='step-title'>Matriks Augmented [A | I]:</div>${buildMatrixHTML(mat, null)}</div>`;
+
+                const { steps, result } = gaussJordanFull(mat, n, n * 2);
+
+                if (!isLarge) {
+                    steps.slice(1).forEach(s => {
+                        out += `<div class='step-container'><div class='step-title'>${s.title}</div>`;
+                        if (s.desc) out += `<div style='font-size:0.76rem;color:var(--text-dim);margin-bottom:8px;'>${s.desc}</div>`;
+                        out += buildMatrixHTML(s.mat, {pivotRow: s.pivotRow, pivotCol: s.pivotCol, identity: true});
+                        out += `</div>`;
+                    });
+                }
+
+                const inv = result.map(row => row.slice(n));
+                out += `<div class='step-container'><div class='step-title'>✅ Hasil Invers A⁻¹</div><div class='final-matrix-container'>${buildMatrixHTML(inv, {identity: true})}</div></div>`;
+            }
+            else if (op === 'gauss') {
+                // GAUSS-JORDAN: hasilkan matriks identitas
+                const n = rA;
+                const m = cA;
+
+                if (n > m - 1) throw `Untuk sistem persamaan, kolom (${m}) harus = baris + 1 (${n + 1}). Sesuaikan dimensi matriks A.`;
+
+                const { steps, result } = gaussJordanFull(deepCopy(mA), n, m);
+
+                out += `<div class='step-container'><div class='step-title'>ℹ Tujuan Eliminasi Gauss-Jordan</div>
+                    <div style='font-size:0.8rem;color:var(--text-dim);line-height:1.7;'>
+                    Mengubah matriks augmented <strong style='color:var(--text-main)'>[A | b]</strong> menjadi <strong style='color:var(--accent)'>[I | x]</strong>,<br>
+                    di mana <strong>I</strong> adalah matriks identitas (diagonal = 1, lainnya = 0),<br>
+                    dan kolom terakhir <strong>x</strong> adalah solusi sistem persamaan.
+                    </div></div>`;
+
+                if (!isLarge) {
+                    steps.forEach(s => {
+                        out += `<div class='step-container'><div class='step-title'>${s.title}</div>`;
+                        if (s.desc) out += `<div style='font-size:0.76rem;color:var(--text-dim);margin-bottom:8px;'>${s.desc}</div>`;
+                        out += buildMatrixHTML(s.mat, {pivotRow: s.pivotRow, pivotCol: s.pivotCol, identity: s.identity});
+                        out += `</div>`;
+                    });
+                }
+
+                // Check result — is it reduced row echelon?
+                const isRREF = result.every((row, i) => {
+                    if (i >= Math.min(n, m - 1)) return true;
+                    return Math.abs(row[i] - 1) < 1e-9;
+                });
+
+                out += `<div class='step-container' style='border-left-color:var(--success);'>
+                    <div class='step-title' style='color:var(--success);'>✅ Matriks Akhir — Bentuk Reduced Row Echelon (RREF)</div>
+                    <div style='font-size:0.76rem;color:var(--text-dim);margin-bottom:10px;'>
+                    Diagonal utama = <strong style='color:var(--success)'>1</strong>, semua elemen lain di kolom pivot = <strong style='color:var(--text-dim)'>0</strong>.
+                    </div>
+                    <div class='final-matrix-container'>${buildMatrixHTML(result, {identity: true})}</div></div>`;
+
+                // Tampilkan solusi
+                if (isRREF && m === n + 1) {
+                    out += `<div class='step-container' style='border-left-color:var(--warn);'>
+                        <div class='step-title' style='color:var(--warn);'>🔑 Solusi Sistem Persamaan</div>
+                        <div style='font-family:var(--font-mono);font-size:0.85rem;line-height:2;'>`;
+                    for (let i = 0; i < n; i++) {
+                        out += `x<sub>${i+1}</sub> = <strong style='color:var(--accent);'>${fmtNum(result[i][m - 1])}</strong><br>`;
+                    }
+                    out += `</div></div>`;
+                }
+            }
+
+            if (isLarge) {
+                out = `<div class='step-container'><div class='step-title'>⚠ Mode Kinerja Tinggi</div><span class='perf-msg'>Matriks besar (>10×10): langkah detail disembunyikan.</span></div>` + out;
+            }
+
+            lastOutputHTML = out;
+            consoleEl.innerHTML = out;
+
+        } catch (err) {
+            const errHTML = `<div class='error-msg'>❌ [ERROR] ${err}</div>`;
+            consoleEl.innerHTML = errHTML;
+            lastOutputHTML = errHTML;
+        }
+    }, 30);
+}
+
+// ========== INIT ==========
+handleOperationChange();
+buildGrid('A');
+buildGrid('B');
 </script>
 
 </body>
