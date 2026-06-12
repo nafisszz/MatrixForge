@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatrixForge | Laboratorium Aljabar Linear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-deep: #0b0f1a;
+        --bg-panel: #121829;
+        --bg-elevated: #1b243b;
+        --bg-input: #0f1626;
+        --line: #2a3550;
+        --text-main: #e7ecf7;
+        --text-dim: #8a96b8;
+        --accent: #5eead4;       /* teal/cyan signature */
+        --accent-soft: rgba(94, 234, 212, 0.12);
+        --accent-strong: #2dd4bf;
+        --warn: #fbbf24;
+        --danger: #fb7185;
+        --font-display: 'Space Grotesk', sans-serif;
+        --font-ui: 'Inter', system-ui, sans-serif;
+        --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0; padding: 0;
+        height: 100%;
+        font-family: var(--font-ui);
+        background-color: var(--bg-deep);
+        color: var(--text-main);
+        overflow: hidden;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-image:
+            radial-gradient(circle at 85% 0%, rgba(94,234,212,0.07), transparent 40%),
+            radial-gradient(circle at 0% 100%, rgba(94,234,212,0.05), transparent 35%);
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+        flex: 0 0 auto;
+        background-color: var(--bg-panel);
+        border-bottom: 1px solid var(--line);
+        padding: 12px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .logo .mark {
+        width: 28px; height: 28px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, var(--accent) 0%, #38bdf8 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: #06251f;
+        font-size: 0.95rem;
+    }
+    .logo .name span { color: var(--accent); }
+
+    .navbar .tagline {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        letter-spacing: 0.5px;
+    }
+
+    /* ---------- LAYOUT (THE FIX) ---------- */
+    /* Kunci perbaikan bug: workspace dipaksa mengisi sisa tinggi viewport,
+       dan TIDAK PERNAH ikut membesar walau grid matriks berukuran besar.
+       Sidebar dibuat flex-shrink:0 + posisi sticky/independen, dengan
+       scroll sendiri (overflow-y:auto) sehingga selalu terlihat. */
+    .workspace {
+        flex: 1 1 auto;
+        display: flex;
+        min-height: 0;     /* <-- kunci utama: izinkan child untuk scroll, bukan overflow body */
+        overflow: hidden;
+    }
+
+    .control-panel {
+        flex: 0 0 320px;
+        width: 320px;
+        max-width: 320px;
+        background-color: var(--bg-panel);
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        height: 100%;
+    }
+
+    .panel-section {
+        padding: 20px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .section-title {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 600;
+        margin-bottom: 14px;
+        letter-spacing: 1.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .section-title::before {
+        content: '';
+        width: 8px; height: 8px;
+        border-radius: 2px;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+    }
+
+    .form-group { margin-bottom: 12px; }
+    .form-row { display: flex; gap: 10px; }
+
+    label { display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-dim); font-weight: 500; }
+
+    select, input[type="number"] {
+        width: 100%;
+        padding: 9px 12px;
+        background-color: var(--bg-input);
+        border: 1px solid var(--line);
+        color: var(--text-main);
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    select:focus, input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: var(--font-ui);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        color: #06251f;
+        box-shadow: 0 4px 14px rgba(45, 212, 191, 0.25);
+    }
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+        background-color: var(--bg-elevated);
+        color: var(--text-main);
+        border: 1px solid var(--line);
+    }
+    .btn-secondary:hover { background-color: #232f4d; border-color: var(--accent); }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .main-content {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background-color: var(--bg-deep);
+    }
+
+    .editors-container {
+        display: flex;
+        flex: 1 1 60%;
+        min-height: 0;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .matrix-pane {
+        flex: 1 1 50%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--line);
+        background: var(--bg-panel);
+    }
+    .matrix-pane:last-child { border-right: none; }
+
+    .pane-header {
+        flex: 0 0 auto;
+        padding: 10px 18px;
+        background-color: var(--bg-elevated);
+        border-bottom: 1px solid var(--line);
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-display);
+        letter-spacing: 0.5px;
+    }
+    .pane-header .dim-badge {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    /* Grid wrapper scrolls independently — never affects sidebar/layout */
+    .grid-wrapper {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        padding: 14px;
+    }
+
+    .matrix-table {
+        border-collapse: separate;
+        border-spacing: 3px;
+    }
+
+    .matrix-table input {
+        width: 56px;
+        height: 28px;
+        text-align: right;
+        padding: 0 6px;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        background-color: var(--bg-input);
+        border: 1px solid var(--line);
+        color: var(--text-main);
+        border-radius: 4px;
+    }
+    .matrix-table input:hover { border-color: var(--accent); }
+    .matrix-table input:focus { border-color: var(--accent); background-color: #16233d; outline: none; box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* ---------- OUTPUT / CONSOLE ---------- */
+    .output-pane {
+        flex: 1 1 40%;
+        min-height: 160px;
+        background-color: var(--bg-panel);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .output-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 20px;
+        overflow-y: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    .step-container { margin-bottom: 22px; padding: 16px; background: var(--bg-elevated); border-radius: 8px; border-left: 3px solid var(--accent); }
+    .step-title { color: var(--accent); font-weight: 600; margin-bottom: 10px; font-family: var(--font-display); letter-spacing: 0.3px; }
+
+    .math-display { display: flex; align-items: center; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+    .math-operator { font-size: 1.5rem; font-weight: bold; color: var(--text-dim); font-family: var(--font-display); }
+
+    .display-matrix { border-collapse: collapse; background: var(--bg-panel); border-radius: 4px; overflow: hidden; }
+    .display-matrix td { padding: 6px 12px; text-align: right; border: 1px solid var(--line); color: #fff; }
+
+    .status-msg { color: var(--accent); font-weight: 600; }
+    .error-msg { color: var(--danger); font-weight: 600; }
+    .perf-msg { color: var(--warn); }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* Responsive: stack on narrow screens, sidebar still always reachable */
+    @media (max-width: 900px) {
+        .workspace { flex-direction: column; overflow: auto; }
+        .control-panel { flex: 0 0 auto; width: 100%; max-width: 100%; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--line); }
+        .editors-container { flex-direction: column; }
+        .matrix-pane { border-right: none; border-bottom: 1px solid var(--line); }
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <div class="mark">M∀</div>
+        <div class="name">Matrix<span>Forge</span></div>
+    </div>
+    <div class="tagline">// Web Worker Engine · Aman untuk Matriks Berordo Besar</div>
+</nav>
+
+<div class="workspace">
+    <aside class="control-panel">
+        <div class="panel-section">
+            <div class="section-title">Konfigurasi Operasi</div>
+            <div class="form-group">
+                <label>Pilih Operasi</label>
+                <select id="operation" onchange="handleOperationChange()">
+                    <option value="add">A + B (Penjumlahan)</option>
+                    <option value="sub">A − B (Pengurangan)</option>
+                    <option value="mul">A × B (Perkalian)</option>
+                    <option value="det">Determinan |A|</option>
+                    <option value="inv">Invers (A⁻¹)</option>
+                    <option value="gauss">Eliminasi Gauss (A)</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Baris A</label>
+                    <input type="number" id="rA" value="3" min="1" max="100" onchange="buildGrid('A')">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Kolom A</label>
+                    <input type="number" id="cA" value="3" min="1" max="100" onchange="buildGrid('A')">
+                </div>
+            </div>
+            <div class="form-row" id="dim-B">
+                <div class="form-group" style="flex: 1;">
+                    <label>Baris B</label>
+                    <input type="number" id="rB" value="3" min="1" max="100" onchange="buildGrid('B')">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Kolom B</label>
+                    <input type="number" id="cB" value="3" min="1" max="100" onchange="buildGrid('B')">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="section-title">Generator Data</div>
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Nilai Min</label>
+                    <input type="number" id="randMin" value="-10">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Nilai Max</label>
+                    <input type="number" id="randMax" value="10">
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="generateRandom()" style="margin-bottom: 10px;">⚡ Isi Angka Acak</button>
+            <button class="btn btn-secondary" onclick="clearGrids()">🗑 Kosongkan Matriks</button>
+        </div>
+
+        <div class="panel-section" style="margin-top: auto; border-bottom: none;">
+            <button class="btn btn-primary" onclick="executeMath()" style="padding: 15px; font-size: 1rem;">▶ Eksekusi Operasi</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="editors-container">
+            <div class="matrix-pane" id="pane-A">
+                <div class="pane-header">
+                    <span>Matriks A</span>
+                    <span class="dim-badge" id="badge-A">3 × 3</span>
+                </div>
+                <div class="grid-wrapper" id="grid-A"></div>
+            </div>
+            <div class="matrix-pane" id="pane-B">
+                <div class="pane-header">
+                    <span>Matriks B</span>
+                    <span class="dim-badge" id="badge-B">3 × 3</span>
+                </div>
+                <div class="grid-wrapper" id="grid-B"></div>
+            </div>
+        </div>
+
+        <div class="output-pane">
+            <div class="pane-header" style="border-top: none;">
+                <span>Terminal Output (Langkah Pengerjaan)</span>
+                <button class="btn btn-secondary" style="padding: 4px 12px; width: auto; font-size: 0.78rem;" onclick="document.getElementById('console').innerHTML=''">Clear Terminal</button>
+            </div>
+            <div class="output-content" id="console">
+                <div style="color: var(--text-dim);">// System Ready. Menggunakan Web Worker untuk komputasi aman...</div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // --- MANAJEMEN UI & GRID OPTIMIZATION ---
+    function handleOperationChange() {
+        const op = document.getElementById('operation').value;
+        const needsB = ['add', 'sub', 'mul'].includes(op);
+        document.getElementById('pane-B').style.display = needsB ? 'flex' : 'none';
+        document.getElementById('dim-B').style.display = needsB ? 'flex' : 'none';
+    }
+
+    function updateBadge(id) {
+        const r = document.getElementById(`r${id}`).value;
+        const c = document.getElementById(`c${id}`).value;
+        document.getElementById(`badge-${id}`).textContent = `${r} × ${c}`;
+    }
+
+    // Menggunakan string HTML batching agar merender 100x100 (10.000 input) sangat cepat
+    function buildGrid(id) {
+        const r = parseInt(document.getElementById(`r${id}`).value);
+        const c = parseInt(document.getElementById(`c${id}`).value);
+        const container = document.getElementById(`grid-${id}`);
+
+        let html = '<table class="matrix-table">';
+        for (let i = 0; i < r; i++) {
+            html += '<tr>';
+            for (let j = 0; j < c; j++) {
+                html += `<td><input type="number" id="m${id}_${i}_${j}" value="0"></td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+        container.innerHTML = html;
+        updateBadge(id);
+    }
+
+    function generateRandom() {
+        const min = parseInt(document.getElementById('randMin').value);
+        const max = parseInt(document.getElementById('randMax').value);
+        const rA = parseInt(document.getElementById('rA').value);
+        const cA = parseInt(document.getElementById('cA').value);
+
+        let htmlA = '<table class="matrix-table">';
+        for (let i = 0; i < rA; i++) {
+            htmlA += '<tr>';
+            for (let j = 0; j < cA; j++) {
+                let val = Math.floor(Math.random() * (max - min + 1)) + min;
+                htmlA += `<td><input type="number" id="mA_${i}_${j}" value="${val}"></td>`;
+            }
+            htmlA += '</tr>';
+        }
+        htmlA += '</table>';
+        document.getElementById('grid-A').innerHTML = htmlA;
+        updateBadge('A');
+
+        const op = document.getElementById('operation').value;
+        if (['add', 'sub', 'mul'].includes(op)) {
+            const rB = parseInt(document.getElementById('rB').value);
+            const cB = parseInt(document.getElementById('cB').value);
+            let htmlB = '<table class="matrix-table">';
+            for (let i = 0; i < rB; i++) {
+                htmlB += '<tr>';
+                for (let j = 0; j < cB; j++) {
+                    let val = Math.floor(Math.random() * (max - min + 1)) + min;
+                    htmlB += `<td><input type="number" id="mB_${i}_${j}" value="${val}"></td>`;
+                }
+                htmlB += '</tr>';
+            }
+            htmlB += '</table>';
+            document.getElementById('grid-B').innerHTML = htmlB;
+            updateBadge('B');
+        }
+    }
+
+    function clearGrids() {
+        buildGrid('A'); buildGrid('B');
+    }
+
+    function getMatrixData(id, r, c) {
+        const data = new Float64Array(r * c);
+        for (let i = 0; i < r; i++) {
+            for (let j = 0; j < c; j++) {
+                let val = parseFloat(document.getElementById(`m${id}_${i}_${j}`).value);
+                data[i * c + j] = isNaN(val) ? 0 : val;
+            }
+        }
+        return data;
+    }
+
+    // --- LOGIKA WEB WORKER (Mencegah Lag saat Komputasi) ---
+    const workerCode = `
+        function fmt(mat, r, c) {
+            let h = "<table class='display-matrix'>";
+            for(let i=0; i<r; i++) {
+                h += "<tr>";
+                for(let j=0; j<c; j++) h += "<td>" + Number(mat[i*c+j].toFixed(4)) + "</td>";
+                h += "</tr>";
+            }
+            return h + "</table>";
+        }
+
+        self.onmessage = function(e) {
+            const { op, mA, rA, cA, mB, rB, cB } = e.data;
+            let out = "";
+            const isLarge = Math.max(rA, cA, rB || 0, cB || 0) > 100;
+
+            try {
+                if (isLarge) {
+                    out += "<div class='step-container'><div class='step-title'>⚠ Mode Kinerja Tinggi Aktif</div><span class='perf-msg'>Karena matriks berukuran lebih dari 10x10, langkah pengerjaan detail disembunyikan untuk mencegah browser kehabisan memori. Hanya hasil akhir yang ditampilkan.</span></div>";
+                }
+
+                if (op === 'add' || op === 'sub') {
+                    if (rA !== rB || cA !== cB) throw "Dimensi A dan B harus sama.";
+                    let res = new Float64Array(mA.length);
+                    for (let i = 0; i < mA.length; i++) res[i] = op === 'add' ? mA[i] + mB[i] : mA[i] - mB[i];
+
+                    if (!isLarge) {
+                        out += "<div class='step-container'><div class='step-title'>Langkah Penjumlahan/Pengurangan Elemen per Elemen:</div>";
+                        out += "<div class='math-display'>" + fmt(mA, rA, cA) + "<div class='math-operator'>" + (op==='add'?'+':'−') + "</div>" + fmt(mB, rB, cB) + "<div class='math-operator'>=</div>" + fmt(res, rA, cA) + "</div></div>";
+                    } else {
+                        out += "<div class='step-container'><div class='step-title'>Hasil Akhir:</div>" + fmt(res, rA, cA) + "</div>";
+                    }
+                }
+                else if (op === 'mul') {
+                    if (cA !== rB) throw "Kolom A harus sama dengan Baris B.";
+                    let res = new Float64Array(rA * cB);
+                    for (let i = 0; i < rA; i++) {
+                        for (let j = 0; j < cB; j++) {
+                            let sum = 0;
+                            for (let k = 0; k < cA; k++) sum += mA[i * cA + k] * mB[k * cB + j];
+                            res[i * cB + j] = sum;
+                        }
+                    }
+                    if (!isLarge) {
+                        out += "<div class='step-container'><div class='step-title'>Langkah Perkalian (Baris × Kolom):</div>";
+                        out += "<div class='math-display'>" + fmt(mA, rA, cA) + "<div class='math-operator'>×</div>" + fmt(mB, rB, cB) + "<div class='math-operator'>=</div>" + fmt(res, rA, cB) + "</div></div>";
+                    } else {
+                        out += "<div class='step-container'><div class='step-title'>Hasil Akhir Perkalian:</div>" + fmt(res, rA, cB) + "</div>";
+                    }
+                }
+                else if (op === 'det') {
+                    if (rA !== cA) throw "Matriks harus persegi.";
+                    let mat = new Float64Array(mA);
+                    let det = 1;
+                    let n = rA;
+
+                    if(!isLarge) out += "<div class='step-container'><div class='step-title'>Matriks Awal:</div>" + fmt(mat, n, n) + "</div>";
+
+                    for (let i = 0; i < n; i++) {
+                        let pivot = i;
+                        for (let j = i + 1; j < n; j++) if (Math.abs(mat[j * n + i]) > Math.abs(mat[pivot * n + i])) pivot = j;
+
+                        if (pivot !== i) {
+                            for (let k = 0; k < n; k++) {
+                                let temp = mat[i * n + k]; mat[i * n + k] = mat[pivot * n + k]; mat[pivot * n + k] = temp;
+                            }
+                            det *= -1;
+                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Tukar Baris " + (i+1) + " & " + (pivot+1) + " (Det × -1):</div>" + fmt(mat, n, n) + "</div>";
+                        }
+
+                        if (Math.abs(mat[i * n + i]) < 1e-9) { det = 0; break; }
+
+                        det *= mat[i * n + i];
+                        for (let k = i + 1; k < n; k++) {
+                            let factor = mat[k * n + i] / mat[i * n + i];
+                            for (let j = i; j < n; j++) mat[k * n + j] -= factor * mat[i * n + j];
+                        }
+                    }
+                    out += "<div class='step-container'><div class='step-title'>Determinan Akhir:</div><h2 style='margin:0; color:#5eead4'>" + Number(det.toFixed(4)) + "</h2></div>";
+                }
+                else if (op === 'gauss' || op === 'inv') {
+                    let isInv = op === 'inv';
+                    if (isInv && rA !== cA) throw "Matriks harus persegi untuk mencari Invers.";
+
+                    let n = rA;
+                    let m = isInv ? n * 2 : cA;
+                    let mat = new Float64Array(n * m);
+
+                    for(let i=0; i<n; i++) {
+                        for(let j=0; j<cA; j++) mat[i*m + j] = mA[i*cA + j];
+                        if(isInv) mat[i*m + (i + cA)] = 1;
+                    }
+
+                    if(!isLarge) out += "<div class='step-container'><div class='step-title'>" + (isInv ? "Matriks Augmented [A | I]:" : "Matriks Awal:") + "</div>" + fmt(mat, n, m) + "</div>";
+
+                    for (let i = 0; i < Math.min(n, cA); i++) {
+                        let pivot = i;
+                        for (let j = i + 1; j < n; j++) if (Math.abs(mat[j * m + i]) > Math.abs(mat[pivot * m + i])) pivot = j;
+
+                        if (pivot !== i) {
+                            for (let k = 0; k < m; k++) {
+                                let t = mat[i * m + k]; mat[i * m + k] = mat[pivot * m + k]; mat[pivot * m + k] = t;
+                            }
+                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Tukar Baris " + (i+1) + " & " + (pivot+1) + "</div>" + fmt(mat, n, m) + "</div>";
+                        }
+
+                        if (Math.abs(mat[i * m + i]) < 1e-9) {
+                            if(isInv) throw "Matriks Singular (Determinan 0), Invers tidak ada.";
+                            continue;
+                        }
+
+                        if(isInv) {
+                            let pVal = mat[i * m + i];
+                            for (let j = 0; j < m; j++) mat[i * m + j] /= pVal;
+                            if(!isLarge) out += "<div class='step-container'><div class='step-title'>Bagi Baris " + (i+1) + " dengan " + pVal.toFixed(2) + "</div>" + fmt(mat, n, m) + "</div>";
+                        }
+
+                        for (let k = i + 1; k < n; k++) {
+                            let factor = mat[k * m + i] / (isInv ? 1 : mat[i * m + i]);
+                            if (Math.abs(factor) > 1e-9) {
+                                for (let j = i; j < m; j++) mat[k * m + j] -= factor * mat[i * m + j];
+                                if(!isLarge) out += "<div class='step-container'><div class='step-title'>Baris " + (k+1) + " - (" + factor.toFixed(2) + " * Baris " + (i+1) + ")</div>" + fmt(mat, n, m) + "</div>";
+                            }
+                        }
+                    }
+
+                    if (isInv) {
+                        for (let i = n - 1; i >= 0; i--) {
+                            for (let k = i - 1; k >= 0; k--) {
+                                let factor = mat[k * m + i];
+                                for (let j = i; j < m; j++) mat[k * m + j] -= factor * mat[i * m + j];
+                            }
+                        }
+
+                        let res = new Float64Array(n * n);
+                        for(let i=0; i<n; i++) for(let j=0; j<n; j++) res[i*n+j] = mat[i*m + (j+n)];
+                        out += "<div class='step-container'><div class='step-title'>Hasil Invers Akhir:</div>" + fmt(res, n, n) + "</div>";
+                    } else {
+                        if(isLarge) out += "<div class='step-container'><div class='step-title'>Hasil Eliminasi Gauss:</div>" + fmt(mat, n, m) + "</div>";
+                    }
+                }
+                self.postMessage({ status: 'ok', html: out });
+            } catch (err) {
+                self.postMessage({ status: 'error', html: "<div class='error-msg'>[ERROR] " + err + "</div>" });
+            }
+        };
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+
+    worker.onmessage = function(e) {
+        document.getElementById('console').innerHTML = e.data.html;
+    };
+
+    function executeMath() {
+        const op = document.getElementById('operation').value;
+        const consoleEl = document.getElementById('console');
+
+        const rA = parseInt(document.getElementById('rA').value);
+        const cA = parseInt(document.getElementById('cA').value);
+        const rB = parseInt(document.getElementById('rB').value);
+        const cB = parseInt(document.getElementById('cB').value);
+
+        consoleEl.innerHTML = "<div class='status-msg'>Memproses kalkulasi...</div>";
+
+        setTimeout(() => {
+            const mA = getMatrixData('A', rA, cA);
+            const mB = ['add', 'sub', 'mul'].includes(op) ? getMatrixData('B', rB, cB) : new Float64Array(0);
+            worker.postMessage({ op, mA, rA, cA, mB, rB, cB });
+        }, 50);
+    }
+
+    // Inisialisasi
+    handleOperationChange();
+    buildGrid('A');
+    buildGrid('B');
+</script>
+
+</body>
+</html>
